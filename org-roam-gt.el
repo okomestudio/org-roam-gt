@@ -25,17 +25,17 @@
 ;; provides two major improvements to org-roam:
 
 ;; 1) it improves significantly the speed of org-roam-node-find
-;;    
+;;
 ;; 2) The template passed to org-roam-node-find can be a function.
-;;    This improves its performance significantly. 
+;;    This improves its performance significantly.
 ;;    You can still pass a string, but I recommend you rewrite it as
 ;;    a function. See org-roam-gt-default-format below which replaces
 ;;    the default org-roam template
-;;    
+;;
 ;; 3) it adds a submenu to org-speed-commands (accessible via 'm')
 
 ;; How to use:
-;; 
+;;
 ;; Simply enable the mode:
 ;;  (org-roam-gt-mode)
 ;;
@@ -71,7 +71,7 @@ embedded properties)."
                                                   olp file-atime file-mtime tags refs)) ;;5
                              (:copier nil))
   "A heading or top level file with an assigned ID property."
-  file file-title file-hash file-atime file-mtime ;5 
+  file file-title file-hash file-atime file-mtime ;5
   id level point todo priority ; 5
   scheduled deadline title properties olp ;5
   tags aliases refs)
@@ -167,20 +167,20 @@ If SORT-BY-MTIME then order by mtime in descending order.
                        "order by mtime desc"
                      ""))
          (rows (org-roam-db-query
-                (format "%s\n%s" 
+                (format "%s\n%s"
                         org-roam-gt--retrieve-nodes-query
                         order-by))))
-   (mapcan
+    (mapcan
      (lambda (row)
        (let (
-              (all-titles (cons (car row) (nth 1 row)))
-              )
+             (all-titles (cons (car row) (nth 1 row)))
+             )
          (mapcar (lambda (temp-title)
                    (apply 'org-roam-node-create-from-db (cons temp-title (cdr row))))
                  all-titles)
-       ))
+         ))
      rows)
-     ))
+    ))
 
 
 ;; rewrite org-roam-node-read--completions
@@ -250,7 +250,7 @@ The displayed title is formatted according to `org-roam-node-display-template'."
    ((stringp st) st)
    ((listp st) (mapconcat 'identity st " "))
    (t "")))
-      
+
 
 (defun org-roam-gt--truncate (st width)
   "Return ST as a string of length WIDTH. Using spaces for padding"
@@ -265,13 +265,14 @@ The displayed title is formatted according to `org-roam-node-display-template'."
 (defun org-roam-gt--format-tags (tags width)
   "Return TAGS as a string of width WIDTH.
 Prefixes every tag with #."
-  (org-roam-gt--truncate 
+  (org-roam-gt--truncate
    (mapconcat (lambda (tag) (concat "#" tag)) tags " ")
    width))
-  
+
 (defun org-roam-gt--format-file (file)
   "Simply remove org-roam-directory from the path in FILE."
-  (substring file (length org-roam-directory))
+  ;; (substring file (length org-roam-directory))
+  (file-name-nondirectory file)
   )
 
 
@@ -280,7 +281,7 @@ Prefixes every tag with #."
 This function is equivalent to the following template
 
     (setq org-roam-node-display-template
-              (concat 
+              (concat
                 (propertize \"${todo:10} \" 'face 'org-todo)
                 \"${todo:10} \"
                 (propertize \"${tags:30} \" 'face 'org-tag)
@@ -312,7 +313,7 @@ This function is equivalent to the following template
 Org roam commands:
 _r_: Refile node
 _x_: eXtract subtree
-_q_: Quit            
+_q_: Quit
 "
 
   ("r" (org-roam-refile))
@@ -328,10 +329,10 @@ _q_: Quit
 (defun org-roam-gt-set-org-speed-commands ()
   "update speed commands with our own."
   (setq org-roam-gt-speed-commands-save org-speed-commands)
-  (setq org-speed-commands (append dmg-save-speed
-                                   (list (list "org-roam-gt commands")
-                                         (cons "m" 'org-roam-gt-hydra/body)
-                                         )))
+  ;; (setq org-speed-commands (append dmg-save-speed
+  ;;                                  (list (list "org-roam-gt commands")
+  ;;                                        (cons "m" 'org-roam-gt-hydra/body)
+  ;;                                        )))
   )
 
 (defun org-roam-gt-reset-org-speed-commands ()
@@ -343,13 +344,13 @@ _q_: Quit
 
 
 (defun org-roam-gt-mode-enable ()
-  "Callback when org-roam-mode is enabled."  
+  "Callback when org-roam-mode is enabled."
   (advice-add 'org-roam-node-read--completions :override #'org-roam-gt-node-read--completions)
   (org-roam-gt-set-org-speed-commands)
   )
 
 (defun org-roam-gt-mode-disable ()
-  "Callback when org-roam-mode is disabled."  
+  "Callback when org-roam-mode is disabled."
   (message "disabling org-roam-gt mode")
   (org-roam-gt-reset-org-speed-commands)
   (advice-remove 'org-roam-node-read--completions #'org-roam-gt-node-read--completions))
